@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MushGuard - Advertisements</title>
+    <link rel="icon" type="image/png" href="{% get_media_prefix %}logo/favicon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <img src="/media/logo/logo.png" alt="MushGuard" />
+            <span class="brand-text">MUSHGUARD</span>
+        </a>
+    </div>
+</nav>
+
+<div class="container py-4">
+    <div class="row justify-content-center mb-3">
+        <div class="col-lg-8 text-center">
+            <h1 class="mb-3">Advertisements</h1>
+            <p class="text-muted">Learn more about MushGuard through our promotional materials.</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mb-3">
+        <div class="col-lg-8">
+            <div id="adsCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-indicators">
+                    <button type="button" data-bs-target="#adsCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Logo"></button>
+                    <button type="button" data-bs-target="#adsCarousel" data-bs-slide-to="1" aria-label="Poster"></button>
+                    <button type="button" data-bs-target="#adsCarousel" data-bs-slide-to="2" aria-label="Video"></button>
+                </div>
+
+                <div class="carousel-inner rounded shadow-sm">
+                    <div class="carousel-item active text-center bg-white">
+                        <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 260px;">
+                            <img src="{% get_media_prefix %}logo/logo.png" alt="MushGuard Logo" class="img-fluid mb-2" style="max-height: 260px; object-fit: contain;">
+                            <div class="text-muted small mb-2">MushGuard Logo</div>
+                        </div>
+                    </div>
+
+                    <div class="carousel-item text-center bg-white">
+                        <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 260px;">
+                            <img src="{% get_media_prefix %}logo/poster.png" alt="MushGuard Poster" class="img-fluid" style="max-height: 260px; object-fit: contain;">
+                            <div class="text-muted small mb-2">Promotional Poster</div>
+                        </div>
+                    </div>
+
+                    <div class="carousel-item bg-black">
+                        <div class="d-flex align-items-center justify-content-center" style="min-height: 260px;">
+                            <video controls class="w-100" style="max-height: 260px;">
+                                <source src="{% get_media_prefix %}logo/video%20ad.mp4" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                        <div class="text-center text-muted small py-1 bg-dark">Video Advertisement</div>
+                    </div>
+                </div>
+
+                <button class="carousel-control-prev" type="button" data-bs-target="#adsCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true" style="background-color: rgba(0,0,0,0.6); border-radius: 50%; padding: 0.6rem;"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#adsCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true" style="background-color: rgba(0,0,0,0.6); border-radius: 50%; padding: 0.6rem;"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-2">
+        <a href="/" class="btn btn-outline-secondary">Back to Home</a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

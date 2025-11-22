@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MushGuard - My Account</title>
+    <link rel="icon" type="image/png" href="{% get_media_prefix %}logo/favicon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/">MUSHGUARD</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'core:analyze' %}">Scan</a></li>
+                <li class="nav-item"><a class="nav-link" href="/#map">Map</a></li>
+                <li class="nav-item"><a class="nav-link" href="/#about">About</a></li>
+                <li class="nav-item"><a class="nav-link active" href="{% url 'core:account' %}"><i class="fas fa-user-circle me-1"></i>Account</a></li>
+                <li class="nav-item">
+                    <form method="post" action="{% url 'core:logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-link nav-link" style="display:inline; border:none; padding:0;">
+                            <i class="fas fa-sign-out-alt me-1"></i>Logout
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2 class="mb-1">My Account</h2>
+            <p class="text-muted mb-0">Hello, {{ request.user.username }}!</p>
+        </div>
+        <div class="col-md-6 text-md-end mt-3 mt-md-0">
+            {% if profile and profile.email_verified %}
+                <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Email verified</span>
+            {% else %}
+                <span class="badge bg-warning text-dark"><i class="fas fa-exclamation-circle me-1"></i>Email not verified</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-history me-2"></i>My Mushroom Reports</h5>
+        </div>
+        <div class="card-body">
+            {% if reports %}
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th>Location</th>
+                                <th>Reported At</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for r in reports %}
+                            <tr>
+                                <td>
+                                    {% if r.image %}
+                                        <img src="{{ r.image.url }}" alt="{{ r.name }}" style="height: 50px; width: auto; border-radius: 4px;">
+                                    {% endif %}
+                                </td>
+                                <td>{{ r.name }}</td>
+                                <td>{{ r.get_status_display }}</td>
+                                <td>{{ r.latitude }}, {{ r.longitude }}</td>
+                                <td>{{ r.created_at|date:"Y-m-d H:i" }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">You have not submitted any mushroom reports yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

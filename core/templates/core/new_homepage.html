@@ -1,0 +1,101 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MushGuard – AI Mushroom Identifier & Map for Biliran</title>
+    <meta name="description" content="MushGuard is an AI-powered web app for safe mushroom identification and mapping in Biliran Province, helping users distinguish edible and poisonous mushrooms.">
+    <meta name="keywords" content="MushGuard, mushroom identifier, mushroom app, AI mushroom detector, Biliran, edible mushrooms, poisonous mushrooms, mushroom map">
+    <link rel="icon" type="image/png" href="{% get_media_prefix %}logo/favicon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta name="theme-color" content="#198754">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <span class="brand-text">MUSHGUARD</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link active" href="#home">Home</a></li>
+                    <li class="nav-item">
+                        {% if user.is_authenticated %}
+                            <a class="nav-link" href="{% url 'core:analyze' %}">Scan</a>
+                        {% else %}
+                            <a class="nav-link" href="{% url 'core:login' %}?next={% url 'core:analyze' %}">Scan</a>
+                        {% endif %}
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="#map">Map</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'core:account' %}"><i class="fas fa-user-circle me-1"></i>Account</a></li>
+                        <li class="nav-item">
+                            <form method="post" action="{% url 'core:logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-link nav-link" style="display:inline; border:none; padding:0;">Logout</button>
+                            </form>
+                        </li>
+                    {% else %}
+
+                        <li class="nav-item"><a class="nav-link" href="{% url 'core:signup' %}">Sign Up</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section id="home" class="hero-section">
+        <div class="container py-5">
+            <div class="row align-items-center">
+                <div class="col-12 col-md-8">
+                    <div class="hero-content">
+                        <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center gap-3 mb-4">
+                            <h1 class="hero-title mb-0">Hello, Biliranon! 👋</h1>
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'core:analyze' %}" class="btn btn-success btn-lg hero-cta">
+                                    Analyze a Mushroom
+                                </a>
+                            {% else %}
+                                <a href="{% url 'core:login' %}?next={% url 'core:analyze' %}" class="btn btn-success btn-lg hero-cta">
+                                    Analyze a Mushroom
+                                </a>
+                            {% endif %}
+                        </div>
+                        <p class="hero-subtitle lead mb-4">Welcome to MushGuard - Your trusted companion for mushroom identification and mapping in Biliran Province</p>
+                        <p class="hero-description mb-4">Discover, identify, and map mushrooms safely with our AI-powered detection system</p>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4 d-flex flex-column align-items-center justify-content-start mt-4 mt-md-0 text-center">
+                    <img src="{% get_media_prefix %}logo/logo.png" alt="MushGuard logo" class="hero-logo mb-3">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {% include 'core/map_section.html' %}
+
+    {% include 'core/about_section.html' %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/base.js' %}"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker registered from homepage:', reg.scope))
+                    .catch(err => console.error('Service Worker registration failed from homepage:', err));
+            });
+        }
+    </script>
+</body>
+</html>
+
+

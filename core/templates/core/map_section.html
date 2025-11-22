@@ -1,0 +1,349 @@
+<!-- Map Section Component -->
+<section id="map" class="map-section py-5">
+    <div class="container">
+        <div class="section-header text-center mb-4">
+            <h3 class="section-title mb-3">Mushroom Distribution Map</h3>
+            <p class="section-subtitle">Explore mushroom sightings across Biliran Province</p>
+        </div>
+
+        <style>
+        .stat-button {
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 14px;
+            padding: 12px 10px;
+            background: linear-gradient(135deg, #ffffff, #f5f7fb);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .stat-button .stat-number {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .stat-button .stat-label {
+            color: #64748b;
+            letter-spacing: 0.02em;
+        }
+        .stat-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+        }
+        .stat-button.active {
+            background: linear-gradient(135deg, #2563eb, #22d3ee);
+            color: #ffffff;
+            border-color: transparent;
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25);
+        }
+        .stat-button.active .stat-label,
+        .stat-button.active .stat-number,
+        .stat-button.active .stat-icon i {
+            color: #ffffff !important;
+        }
+        .stat-button:focus-visible {
+            outline: 2px solid #2563eb;
+            outline-offset: 2px;
+        }
+        </style>
+    
+        <div class="row g-4 mb-4 align-items-stretch">
+            <div class="col-lg-8">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Mushroom Map</h5>
+                        <div class="position-relative" style="height: 500px; border-radius: var(--radius-md); overflow: hidden;">
+                            <div id="reports-map" style="height: 100%;"></div>
+                            <div class="map-legend" style="position:absolute; right:12px; bottom:12px; background: rgba(255,255,255,0.9); backdrop-filter: blur(8px); border: 1px solid rgba(0,0,0,0.06); border-radius: 10px; padding: 10px 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); min-width: 180px;">
+                               
+                            </div>
+                        </div>
+                        <script type="application/json" id="reports-json">[
+                            {% for r in reports %}
+                            {"lat": {{ r.latitude }}, "lon": {{ r.longitude }}, "name": "{{ r.name|escapejs }}", "img": "{{ r.image.url }}", "date": "{{ r.created_at|date:'Y-m-d H:i' }}", "status": "{{ r.status }}", "color": "{{ r.pin_color|default:'#0d6efd' }}" }{% if not forloop.last %},{% endif %}
+                            {% endfor %}
+                        ]</script>
+                    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+                    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function(){
+                    (function(){
+                        const el = document.getElementById('reports-map');
+                        if (!el) return;
+
+                        const southWest = L.latLng(11.40, 124.20);
+                        const northEast = L.latLng(11.75, 124.70);
+                        const bounds = L.latLngBounds(southWest, northEast);
+                        const center = [11.58, 124.50];
+
+                        const map = L.map('reports-map', {
+                            center: center,
+                            zoom: 10,
+                            maxBounds: bounds,
+                            maxBoundsViscosity: 1.0
+                        });
+
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; OpenStreetMap contributors'
+                        }).addTo(map);
+
+                        let reports = [];
+                        try {
+                            const dataEl = document.getElementById('reports-json');
+                            if (dataEl && dataEl.textContent.trim().length) {
+                                reports = JSON.parse(dataEl.textContent);
+                            }
+                        } catch (e) {
+                            console.error('Failed to parse reports JSON', e);
+                        }
+
+                        function markerIcon(color) {
+                            const html = `<span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 0 0 2px rgba(0,0,0,.2);"></span>`;
+                            return L.divIcon({ html, className: 'custom-pin', iconSize: [18, 18], iconAnchor: [9, 9] });
+                        }
+
+                        const markerEntries = [];
+
+                        reports.forEach(function(rep){
+                            if (isNaN(rep.lat) || isNaN(rep.lon)) return;
+                            const pinColor = rep.color || '#0d6efd';
+                            const marker = L.marker([rep.lat, rep.lon], { icon: markerIcon(pinColor) }).addTo(map);
+                            markerEntries.push({ marker, status: (rep.status || '').toLowerCase() });
+                            marker.bindPopup(`
+                                <div style="width:220px">
+                                    <img src="${rep.img}" alt="${rep.name}" style="width:100%;height:120px;object-fit:cover;border-radius:6px;margin-bottom:6px;"/>
+                                    <strong>${rep.name}</strong><br/>
+                                    <small>${rep.date}</small><br/>
+                                    <button onclick="window.location.href='/mushroom/${encodeURIComponent(rep.name)}/'" 
+                                            class="btn btn-sm btn-primary mt-2" style="font-size:0.8rem;">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </button>
+                                </div>
+                            `);
+                        });
+
+                        function applyFilter(filter) {
+                            const normalized = (filter || 'all').toLowerCase();
+                            const visibleMarkers = [];
+
+                            markerEntries.forEach(function(entry) {
+                                const status = entry.status || 'mapped';
+                                const matches = normalized === 'all' || status === normalized;
+                                if (matches) {
+                                    if (!map.hasLayer(entry.marker)) {
+                                        entry.marker.addTo(map);
+                                    }
+                                    visibleMarkers.push(entry.marker);
+                                } else if (map.hasLayer(entry.marker)) {
+                                    map.removeLayer(entry.marker);
+                                }
+                            });
+
+                            if (visibleMarkers.length > 0) {
+                                const group = L.featureGroup(visibleMarkers);
+                                map.fitBounds(group.getBounds().pad(0.1));
+                            } else {
+                                map.setView(center, 10);
+                            }
+                        }
+
+                        const statFilters = document.querySelectorAll('.stat-filter');
+                        statFilters.forEach(function(item) {
+                            item.addEventListener('click', function() {
+                                const filter = this.getAttribute('data-filter') || 'all';
+                                statFilters.forEach(el => el.classList.remove('active'));
+                                this.classList.add('active');
+                                applyFilter(filter);
+                            });
+                            item.addEventListener('keypress', function(e) {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    this.click();
+                                }
+                            });
+                        });
+
+                        applyFilter('all');
+                    })();
+                    });
+                    </script>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i class="fas fa-chart-bar me-2"></i>Map Statistics
+                        </h5>
+                        <div class="row row-cols-2 g-2">
+                            <div class="col">
+                                <button type="button" class="stat-button w-100 text-center stat-filter active" data-filter="all">
+                                    <div class="stat-icon mb-1">
+                                        <i class="fas fa-map-marked-alt fa-lg" style="color:#0d6efd"></i>
+                                    </div>
+                                    <div class="stat-number mb-1" data-target="{{ counts.total|default_if_none:0 }}">0</div>
+                                    <p class="stat-label small mb-0">Mushrooms Mapped</p>
+                                </button>
+                            </div>
+                            <div class="col">
+                                <button type="button" class="stat-button w-100 text-center stat-filter" data-filter="edible">
+                                    <div class="stat-icon mb-1">
+                                        <i class="fas fa-leaf fa-lg text-success"></i>
+                                    </div>
+                                    <div class="stat-number mb-1" data-target="{{ counts.edible|default_if_none:0 }}">0</div>
+                                    <p class="stat-label small mb-0">Edible</p>
+                                </button>
+                            </div>
+                            <div class="col">
+                                <button type="button" class="stat-button w-100 text-center stat-filter" data-filter="poisonous">
+                                    <div class="stat-icon mb-1">
+                                        <i class="fas fa-skull-crossbones fa-lg text-danger"></i>
+                                    </div>
+                                    <div class="stat-number mb-1" data-target="{{ counts.poisonous|default_if_none:0 }}">0</div>
+                                    <p class="stat-label small mb-0">Poisonous</p>
+                                </button>
+                            </div>
+                            <div class="col">
+                                <button type="button" class="stat-button w-100 text-center stat-filter" data-filter="unknown">
+                                    <div class="stat-icon mb-1">
+                                        <i class="fas fa-question-circle fa-lg text-warning"></i>
+                                    </div>
+                                    <div class="stat-number mb-1" data-target="{{ counts.unknown|default_if_none:0 }}">0</div>
+                                    <p class="stat-label small mb-0">Unknown</p>
+                                </button>
+                            </div>
+                        </div>
+                        <hr class="my-2">
+                        <div class="alert alert-info mb-0 py-2 small">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Click map pointers to preview contents
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row g-2 align-items-center mb-3">
+                            <div class="col-md-6">
+                                <h5 class="card-title mb-0">Mushroom Species</h5>
+                            </div>
+                            <div class="col-md-6 d-flex justify-content-md-end align-items-center gap-2">
+                                <div class="input-group" style="max-width: 260px;">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <input type="text" id="speciesSearch" class="form-control" placeholder="Search mushrooms..." />
+                                </div>
+                                <a class="btn btn-success" href="/report/">Report Unknown Mushroom</a>
+                            </div>
+                        </div>
+                        <hr>
+                        {% if grouped_mushrooms %}
+                            <div class="row g-3">
+                                {% for species_name, mushroom_list in grouped_mushrooms.items %}
+                                    {% with primary_mushroom=mushroom_list.0 %}
+                                    <div class="col-md-4">
+                                        <div class="card h-100 report-card mushroom-species-card" 
+                                             data-species="{{ species_name }}" 
+                                             style="transition: transform 0.2s ease;">
+                                            <img src="{{ primary_mushroom.image.url }}" class="card-img-top" alt="{{ primary_mushroom.name }}">
+                                            <div class="card-body">
+                                                <h6 class="card-title d-flex justify-content-between align-items-start">
+                                                    <span>
+                                                        <i class="fas fa-mushroom text-success me-2"></i>{{ primary_mushroom.name }}
+                                                    </span>
+                                                    <span class="badge bg-{{ primary_mushroom.status }} ms-2">
+                                                        {% if primary_mushroom.status == 'edible' %}
+                                                            <i class="fas fa-leaf"></i>
+                                                        {% elif primary_mushroom.status == 'poisonous' %}
+                                                            <i class="fas fa-skull-crossbones"></i>
+                                                        {% elif primary_mushroom.status == 'unknown' %}
+                                                            <i class="fas fa-question-circle"></i>
+                                                        {% else %}
+                                                            <i class="fas fa-map-marker-alt"></i>
+                                                        {% endif %}
+                                                    </span>
+                                                </h6>
+                                                {% if primary_mushroom.description %}
+                                                    <p class="card-text small text-muted mb-1">
+                                                        <strong>Description:</strong>
+                                                        {{ primary_mushroom.description|truncatechars:80 }}
+                                                    </p>
+                                                {% endif %}
+                                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                                    <div>
+                                                        <small class="text-muted d-block">
+                                                            <i class="fas fa-images me-1"></i>{{ mushroom_list|length }} report{{ mushroom_list|length|pluralize }}
+                                                        </small>
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-clock me-1"></i>{{ primary_mushroom.created_at|date:'M d' }}
+                                                        </small>
+                                                    </div>
+                                                    <a href="{% url 'core:mushroom_detail' primary_mushroom.name %}"
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        Read more
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endwith %}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-secondary mb-0">No reports yet. Be the first to report an unknown mushroom.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    // Enhance mushroom species cards (hover + search)
+    document.addEventListener('DOMContentLoaded', function() {
+        const speciesCards = document.querySelectorAll('.mushroom-species-card');
+        const searchInput = document.getElementById('speciesSearch');
+        const statNumbers = document.querySelectorAll('.stat-number');
+
+        statNumbers.forEach(function(numEl) {
+            const target = parseInt(numEl.getAttribute('data-target'), 10);
+            numEl.textContent = isNaN(target) ? '0' : target.toString();
+        });
+
+        speciesCards.forEach(function(card) {
+            // Add hover effects only (navigation handled by Read more button)
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '';
+            });
+            
+            // Card remains non-clickable; navigation via Read more button
+        });
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const query = this.value.trim().toLowerCase();
+                speciesCards.forEach(function(card) {
+                    const species = (card.dataset.species || '').toLowerCase();
+                    const matches = !query || species.includes(query);
+                    const col = card.closest('.col-md-4');
+                    if (col) {
+                        col.style.display = matches ? '' : 'none';
+                    } else {
+                        card.style.display = matches ? '' : 'none';
+                    }
+                });
+            });
+        }
+    });
+    </script>
+</section>
